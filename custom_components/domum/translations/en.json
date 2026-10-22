@@ -48,6 +48,18 @@
       },
       "bastion_sessions": {
         "name": "Bastion active sessions"
+      },
+      "monitoring_load": {
+        "name": "{name} load"
+      },
+      "monitoring_memory": {
+        "name": "{name} memory"
+      },
+      "monitoring_disk": {
+        "name": "{name} fullest disk"
+      },
+      "updates_packages": {
+        "name": "{name} pending packages"
       }
     },
     "binary_sensor": {
@@ -59,6 +71,18 @@
       },
       "alias_active": {
         "name": "{name}"
+      },
+      "monitoring_problem": {
+        "name": "{name} problem"
+      },
+      "critical_fixable": {
+        "name": "{name} fixable critical flaw"
+      },
+      "high_fixable": {
+        "name": "{name} fixable high flaw"
+      },
+      "reboot_required": {
+        "name": "{name} reboot required"
       }
     },
     "button": {
@@ -67,11 +91,22 @@
       },
       "bastion_kill": {
         "name": "Cut bastion sessions"
+      },
+      "server_update": {
+        "name": "{name} update"
+      },
+      "server_reboot": {
+        "name": "{name} reboot"
       }
     },
     "switch": {
       "alias": {
         "name": "{name}"
+      }
+    },
+    "calendar": {
+      "planning": {
+        "name": "Planning"
       }
     }
   },

@@ -28,9 +28,16 @@ Les entités suivent les portées du jeton : sans écriture, pas de bouton ni d'
 | Sauvegarde | par sauvegarde : état (réussie, en échec, en retard, en cours…), dernière réussite, problème (binaire), bouton « lancer » |
 | Bastion | sessions actives, bastion en marche (binaire), bouton « couper les sessions » |
 | Mail Alias | par alias : interrupteur (écriture) ou état actif (lecture) |
+| Supervision | par serveur : anomalie (binaire), charge, mémoire, disque le plus plein ; par contrôle HTTP : anomalie |
+| Mises à jour | par serveur : faille critique corrigeable, faille haute corrigeable, redémarrage requis (binaires), paquets à mettre à jour ; boutons « mettre à jour » et « redémarrer » si Domum le permet depuis Home Assistant pour ce serveur |
+| Planning | calendrier « Planning » : sauvegardes, mises à jour planifiées, plages de maintenance (chevauchements signalés) |
 
 Les éléments ajoutés dans Domum (et exposés au jeton) apparaissent sans recharger
 l'intégration ; un élément retiré devient indisponible.
+
+Exemple : couper l'accès Internet d'un serveur exposé tant qu'une faille critique corrigeable
+n'est pas corrigée (déclencheur sur `binary_sensor.domum_vps_faille_critique_corrigeable`), ou
+lancer la mise à jour du serveur de développement quand l'alarme passe en « Arm Night ».
 
 ## Service `domum.generate_alias`
 

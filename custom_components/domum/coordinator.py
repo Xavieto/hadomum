@@ -45,5 +45,13 @@ class DomumCoordinator(DataUpdateCoordinator[dict]):
         return granted == "write" or (granted == "read" and level == "read")
 
     def items(self, key: str) -> dict[str, dict]:
-        """Éléments d'une liste de l'état (sauvegardes, alias…), par identifiant."""
-        return {item["id"]: item for item in (self.data or {}).get(key, [])}
+        """Éléments d'une liste de l'état (sauvegardes, alias…), par identifiant.
+
+        ``monitoring.servers`` et ``monitoring.checks`` désignent les listes de la supervision.
+        """
+        data = self.data or {}
+        if "." in key:
+            group, name = key.split(".", 1)
+            data = data.get(group) or {}
+            key = name
+        return {item["id"]: item for item in data.get(key, [])}

@@ -79,12 +79,67 @@ class BastionSessionsSensor(DomumEntity, SensorEntity):
         return self.coordinator.data.get("bastion", {}).get("active_sessions")
 
 
+class MonitoringMetricSensor(DomumItemEntity, SensorEntity):
+    """Charge, mémoire ou système de fichiers le plus plein d'un serveur supervisé."""
+
+    collection = "monitoring.servers"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator, item, metric):
+        self._metric = metric
+        self._attr_translation_key = f"monitoring_{metric}"
+        if metric != "load":
+            self._attr_native_unit_of_measurement = "%"
+        super().__init__(coordinator, item, metric)
+
+    @property
+    def native_value(self) -> float | None:
+        metrics = ((self.item or {}).get("data") or {}).get("metrics")
+        if not metrics:
+            return None
+        if self._metric == "load":
+            return metrics["load"][0]
+        if self._metric == "memory":
+            return metrics["memory"]
+        return max((fs["used"] for fs in metrics["filesystems"]), default=None)
+
+
+class UpdatesPackagesSensor(DomumItemEntity, SensorEntity):
+    collection = "updates"
+    _attr_translation_key = "updates_packages"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator, item):
+        super().__init__(coordinator, item, "packages")
+
+    @property
+    def native_value(self) -> int | None:
+        return (self.item or {}).get("packages")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        item = self.item or {}
+        return {"fixable": item.get("fixable"), "scanned_at": item.get("scanned_at")}
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: DomumConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
     coordinator = entry.runtime_data
     if coordinator.can("bastion"):
         async_add_entities([BastionSessionsSensor(coordinator)])
+    add_items(
+        entry,
+        async_add_entities,
+        "monitoring.servers",
+        lambda item: [
+            MonitoringMetricSensor(coordinator, item, metric)
+            for metric in ("load", "memory", "disk")
+        ],
+    )
+    add_items(
+        entry, async_add_entities, "updates", lambda i: [UpdatesPackagesSensor(coordinator, i)]
+    )
     add_items(
         entry,
         async_add_entities,

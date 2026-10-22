@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from urllib.parse import quote
 
 import aiohttp
 
@@ -65,6 +66,12 @@ class DomumClient:
 
     async def set_alias(self, alias_id: str, active: bool) -> dict:
         return await self._request("PATCH", f"/aliases/{alias_id}", {"active": active})
+
+    async def server_action(self, server_id: str, kind: str) -> dict:
+        return await self._request("POST", f"/servers/{server_id}/{kind}")
+
+    async def calendar(self, start: str, end: str) -> list[dict]:
+        return await self._request("GET", f"/calendar?start={quote(start)}&end={quote(end)}")
 
     async def generate_alias(self, destination: str | None, domain: str | None) -> dict:
         payload = {k: v for k, v in (("destination", destination), ("domain", domain)) if v}

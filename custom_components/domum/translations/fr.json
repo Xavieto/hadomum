@@ -48,6 +48,18 @@
       },
       "bastion_sessions": {
         "name": "Sessions actives du bastion"
+      },
+      "monitoring_load": {
+        "name": "{name} : charge"
+      },
+      "monitoring_memory": {
+        "name": "{name} : mémoire"
+      },
+      "monitoring_disk": {
+        "name": "{name} : disque le plus plein"
+      },
+      "updates_packages": {
+        "name": "{name} : paquets à mettre à jour"
       }
     },
     "binary_sensor": {
@@ -59,6 +71,18 @@
       },
       "alias_active": {
         "name": "{name}"
+      },
+      "monitoring_problem": {
+        "name": "{name} : anomalie"
+      },
+      "critical_fixable": {
+        "name": "{name} : faille critique corrigeable"
+      },
+      "high_fixable": {
+        "name": "{name} : faille haute corrigeable"
+      },
+      "reboot_required": {
+        "name": "{name} : redémarrage requis"
       }
     },
     "button": {
@@ -67,11 +91,22 @@
       },
       "bastion_kill": {
         "name": "Couper les sessions du bastion"
+      },
+      "server_update": {
+        "name": "{name} : mettre à jour"
+      },
+      "server_reboot": {
+        "name": "{name} : redémarrer"
       }
     },
     "switch": {
       "alias": {
         "name": "{name}"
+      }
+    },
+    "calendar": {
+      "planning": {
+        "name": "Planning"
       }
     }
   },

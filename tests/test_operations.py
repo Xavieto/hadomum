@@ -1,0 +1,218 @@
+"""Supervision, mises à jour et calendrier du planning."""
+
+from datetime import timedelta
+
+import pytest
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.util import dt as dt_util
+
+from custom_components.domum.calendar import _event
+
+from .conftest import API, state
+
+METRICS = {
+    "load": [0.42, 0.3, 0.2],
+    "cores": 2,
+    "memory": 62.0,
+    "filesystems": [{"mount": "/", "used": 81}, {"mount": "/data", "used": 40}],
+}
+
+
+def operations(**changes):
+    scopes = changes.pop("scopes", {"monitoring": "read", "updates": "write", "planning": "read"})
+    return state(
+        scopes=scopes,
+        monitoring={
+            "servers": [
+                {
+                    "id": "s1",
+                    "name": "VPS",
+                    "status": "alert",
+                    "message": "/ à 81 %",
+                    "since": None,
+                    "checked_at": None,
+                    "data": {"metrics": METRICS},
+                },
+                {
+                    "id": "s2",
+                    "name": "HAOS",
+                    "status": "ok",
+                    "message": None,
+                    "since": None,
+                    "checked_at": None,
+                    "data": {},
+                },
+                {
+                    "id": "s3",
+                    "name": "Vide",
+                    "status": "ok",
+                    "message": None,
+                    "since": None,
+                    "checked_at": None,
+                    "data": {"metrics": {**METRICS, "filesystems": []}},
+                },
+            ],
+            "checks": [
+                {
+                    "id": "h1",
+                    "name": "Cloud",
+                    "status": "ok",
+                    "message": None,
+                    "since": None,
+                    "checked_at": None,
+                    "data": {},
+                }
+            ],
+        },
+        updates=[
+            {
+                "id": "s1",
+                "name": "VPS",
+                "critical_fixable": True,
+                "high_fixable": False,
+                "fixable": 3,
+                "packages": 12,
+                "reboot_required": True,
+                "scanned_at": None,
+                "running": False,
+                "can_update": True,
+                "can_reboot": False,
+            },
+        ],
+        **changes,
+    )
+
+
+def calendar_events(start, end):
+    now = dt_util.utcnow()
+    return [
+        {
+            "kind": "backup",
+            "title": "Domum",
+            "start": (now + timedelta(hours=2)).isoformat(),
+            "end": (now + timedelta(hours=3)).isoformat(),
+            "servers": ["VPS"],
+            "clash": True,
+        },
+        {
+            "kind": "maintenance",
+            "title": "Maintenance",
+            "start": (now + timedelta(hours=1)).isoformat(),
+            "end": (now + timedelta(hours=2)).isoformat(),
+            "servers": [],
+            "clash": False,
+        },
+    ]
+
+
+async def _setup(hass, aioclient_mock, entry, data=None, calendar=None):
+    aioclient_mock.get(f"{API}/state", json=data or operations())
+    aioclient_mock.get(
+        f"{API}/calendar", json=calendar if calendar is not None else calendar_events(None, None)
+    )
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+
+async def test_monitoring_and_updates_entities(hass, aioclient_mock, entry):
+    await _setup(hass, aioclient_mock, entry)
+    assert hass.states.get("binary_sensor.domum_vps_problem").state == "on"
+    assert hass.states.get("binary_sensor.domum_vps_problem").attributes["message"] == "/ à 81 %"
+    assert hass.states.get("binary_sensor.domum_cloud_problem").state == "off"
+    assert hass.states.get("sensor.domum_vps_load").state == "0.42"
+    assert hass.states.get("sensor.domum_vps_memory").state == "62.0"
+    assert hass.states.get("sensor.domum_vps_fullest_disk").state == "81"
+    assert hass.states.get("sensor.domum_haos_load").state == "unknown"
+    assert hass.states.get("sensor.domum_vide_fullest_disk").state == "unknown"
+    assert hass.states.get("binary_sensor.domum_vps_fixable_critical_flaw").state == "on"
+    assert hass.states.get("binary_sensor.domum_vps_fixable_high_flaw").state == "off"
+    assert hass.states.get("binary_sensor.domum_vps_reboot_required").state == "on"
+    assert hass.states.get("sensor.domum_vps_pending_packages").state == "12"
+    assert hass.states.get("button.domum_vps_update") is not None
+    assert hass.states.get("button.domum_vps_reboot") is None
+
+
+async def test_server_actions(hass, aioclient_mock, entry):
+    await _setup(hass, aioclient_mock, entry)
+    aioclient_mock.post(f"{API}/servers/s1/update", status=202, json={"id": "r1"})
+    await hass.services.async_call(
+        "button", "press", {"entity_id": "button.domum_vps_update"}, blocking=True
+    )
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"{API}/state", json=operations())
+    aioclient_mock.post(
+        f"{API}/servers/s1/update",
+        status=403,
+        json={"detail": "La mise à jour depuis Home Assistant n'est pas permise sur ce serveur"},
+    )
+    with pytest.raises(HomeAssistantError, match="pas permise"):
+        await hass.services.async_call(
+            "button", "press", {"entity_id": "button.domum_vps_update"}, blocking=True
+        )
+
+
+async def test_read_only_updates_get_no_buttons(hass, aioclient_mock, entry):
+    data = operations(scopes={"updates": "read"})
+    await _setup(hass, aioclient_mock, entry, data)
+    assert hass.states.get("button.domum_vps_update") is None
+    assert hass.states.get("calendar.domum_planning") is None
+
+
+async def test_the_planning_calendar(hass, aioclient_mock, entry):
+    await _setup(hass, aioclient_mock, entry)
+    calendar = hass.states.get("calendar.domum_planning")
+    assert calendar.attributes["message"] == "Maintenance : Maintenance"
+    now = dt_util.now()
+    response = await hass.services.async_call(
+        "calendar",
+        "get_events",
+        {
+            "entity_id": "calendar.domum_planning",
+            "start_date_time": now,
+            "end_date_time": now + timedelta(days=40),
+        },
+        blocking=True,
+        return_response=True,
+    )
+    events = response["calendar.domum_planning"]["events"]
+    # Deux requêtes de 31 jours au plus : les évènements sont repris pour chaque période.
+    assert len(events) == 4
+    assert any(
+        e["summary"] == "Sauvegarde : Domum (chevauchement)" and e["description"] == "VPS"
+        for e in events
+    )
+
+
+async def test_calendar_errors(hass, aioclient_mock, entry):
+    aioclient_mock.get(f"{API}/state", json=operations())
+    aioclient_mock.get(f"{API}/calendar", status=500, json={})
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert hass.states.get("calendar.domum_planning").state == "off"
+    now = dt_util.now()
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(
+            "calendar",
+            "get_events",
+            {
+                "entity_id": "calendar.domum_planning",
+                "start_date_time": now,
+                "end_date_time": now + timedelta(days=1),
+            },
+            blocking=True,
+            return_response=True,
+        )
+
+
+def test_events_without_servers_have_no_description():
+    now = dt_util.utcnow()
+    event = _event(
+        {
+            "kind": "autre",
+            "title": "X",
+            "start": now.isoformat(),
+            "end": now.isoformat(),
+            "servers": [],
+        }
+    )
+    assert (event.summary, event.description) == ("autre : X", None)

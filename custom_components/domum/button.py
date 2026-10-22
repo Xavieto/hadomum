@@ -41,11 +41,40 @@ class BastionKillButton(DomumEntity, ButtonEntity):
         await self.coordinator.async_request_refresh()
 
 
+class ServerActionButton(DomumItemEntity, ButtonEntity):
+    """Mise à jour ou redémarrage d'un serveur, si Domum le permet depuis Home Assistant."""
+
+    collection = "updates"
+
+    def __init__(self, coordinator, item, kind):
+        self._kind = kind
+        self._attr_translation_key = f"server_{kind}"
+        super().__init__(coordinator, item, kind)
+
+    async def async_press(self) -> None:
+        try:
+            await self.coordinator.client.server_action(self.item_id, self._kind)
+        except DomumError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+        await self.coordinator.async_request_refresh()
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: DomumConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
     coordinator = entry.runtime_data
     if coordinator.can("bastion", "write"):
         async_add_entities([BastionKillButton(coordinator)])
+    if coordinator.can("updates", "write"):
+        add_items(
+            entry,
+            async_add_entities,
+            "updates",
+            lambda i: [
+                ServerActionButton(coordinator, i, kind)
+                for kind, allowed in (("update", "can_update"), ("reboot", "can_reboot"))
+                if i.get(allowed)
+            ],
+        )
     if coordinator.can("backup", "write"):
         add_items(entry, async_add_entities, "backups", lambda i: [BackupRunButton(coordinator, i)])
