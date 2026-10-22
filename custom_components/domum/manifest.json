@@ -1,0 +1,12 @@
+{
+  "domain": "domum",
+  "name": "Domum",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://git.roques.bzh/ha/domum-integration",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://git.roques.bzh/ha/domum-integration/issues",
+  "requirements": [],
+  "version": "2.8.0"
+}

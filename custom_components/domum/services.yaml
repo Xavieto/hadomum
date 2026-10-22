@@ -1,0 +1,15 @@
+generate_alias:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: domum
+    destination:
+      example: "moi@exemple.fr"
+      selector:
+        text:
+          type: email
+    domain:
+      example: "roques.bzh"
+      selector:
+        text:

@@ -1,0 +1,106 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Domum",
+        "description": "Domum address and integration token (Settings → Home Assistant → Integration tokens).",
+        "data": {
+          "url": "Domum address",
+          "api_token": "Integration token",
+          "verify_ssl": "Verify TLS certificate"
+        }
+      },
+      "reauth_confirm": {
+        "title": "New token",
+        "description": "Domum refused the token (revoked?). Enter a new integration token.",
+        "data": {
+          "api_token": "Integration token"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Token refused by Domum",
+      "cannot_connect": "Cannot reach Domum"
+    },
+    "abort": {
+      "already_configured": "This token of this Domum is already configured",
+      "reauth_successful": "Token updated"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "backup_state": {
+        "name": "{name}",
+        "state": {
+          "success": "Succeeded",
+          "partial": "Partial",
+          "failed": "Failed",
+          "running": "Running",
+          "late": "Late",
+          "never": "Never run",
+          "cancelled": "Cancelled",
+          "interrupted": "Interrupted",
+          "pending": "Pending"
+        }
+      },
+      "backup_last_success": {
+        "name": "{name} last success"
+      },
+      "bastion_sessions": {
+        "name": "Bastion active sessions"
+      }
+    },
+    "binary_sensor": {
+      "backup_problem": {
+        "name": "{name} problem"
+      },
+      "bastion_running": {
+        "name": "Bastion"
+      },
+      "alias_active": {
+        "name": "{name}"
+      }
+    },
+    "button": {
+      "backup_run": {
+        "name": "{name} run"
+      },
+      "bastion_kill": {
+        "name": "Cut bastion sessions"
+      }
+    },
+    "switch": {
+      "alias": {
+        "name": "{name}"
+      }
+    }
+  },
+  "exceptions": {
+    "choose_entry": {
+      "message": "Specify the Domum entry to use (config_entry_id)"
+    },
+    "no_alias_write": {
+      "message": "This token cannot write aliases"
+    }
+  },
+  "services": {
+    "generate_alias": {
+      "name": "Generate an alias",
+      "description": "Creates an active random alias in Domum and returns its address.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Domum entry",
+          "description": "Optional when a single entry is configured."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "Optional when Domum has a single destination."
+        },
+        "domain": {
+          "name": "Domain",
+          "description": "Optional when Domum has a single domain."
+        }
+      }
+    }
+  }
+}

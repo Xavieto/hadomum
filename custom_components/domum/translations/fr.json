@@ -1,0 +1,106 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Domum",
+        "description": "Adresse de Domum et jeton d'intégration (Paramètres → Home Assistant → Jetons d'intégration).",
+        "data": {
+          "url": "Adresse de Domum",
+          "api_token": "Jeton d'intégration",
+          "verify_ssl": "Vérifier le certificat TLS"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Nouveau jeton",
+        "description": "Le jeton a été refusé par Domum (révoqué ?). Saisissez un nouveau jeton d'intégration.",
+        "data": {
+          "api_token": "Jeton d'intégration"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Jeton refusé par Domum",
+      "cannot_connect": "Domum injoignable"
+    },
+    "abort": {
+      "already_configured": "Ce jeton de ce Domum est déjà configuré",
+      "reauth_successful": "Jeton mis à jour"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "backup_state": {
+        "name": "{name}",
+        "state": {
+          "success": "Réussie",
+          "partial": "Partielle",
+          "failed": "En échec",
+          "running": "En cours",
+          "late": "En retard",
+          "never": "Jamais lancée",
+          "cancelled": "Annulée",
+          "interrupted": "Interrompue",
+          "pending": "En attente"
+        }
+      },
+      "backup_last_success": {
+        "name": "{name} : dernière réussite"
+      },
+      "bastion_sessions": {
+        "name": "Sessions actives du bastion"
+      }
+    },
+    "binary_sensor": {
+      "backup_problem": {
+        "name": "{name} : problème"
+      },
+      "bastion_running": {
+        "name": "Bastion"
+      },
+      "alias_active": {
+        "name": "{name}"
+      }
+    },
+    "button": {
+      "backup_run": {
+        "name": "{name} : lancer"
+      },
+      "bastion_kill": {
+        "name": "Couper les sessions du bastion"
+      }
+    },
+    "switch": {
+      "alias": {
+        "name": "{name}"
+      }
+    }
+  },
+  "exceptions": {
+    "choose_entry": {
+      "message": "Précisez l'entrée Domum à utiliser (config_entry_id)"
+    },
+    "no_alias_write": {
+      "message": "Ce jeton n'a pas l'écriture sur les alias"
+    }
+  },
+  "services": {
+    "generate_alias": {
+      "name": "Générer un alias",
+      "description": "Crée un alias aléatoire actif chez Domum et renvoie son adresse.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Entrée Domum",
+          "description": "Facultatif si une seule entrée est configurée."
+        },
+        "destination": {
+          "name": "Destination",
+          "description": "Facultatif si Domum n'a qu'une destination."
+        },
+        "domain": {
+          "name": "Domaine",
+          "description": "Facultatif si Domum n'a qu'un domaine."
+        }
+      }
+    }
+  }
+}

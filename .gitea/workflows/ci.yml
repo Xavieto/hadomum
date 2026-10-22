@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Dépendances de test
+        run: pip install -r requirements_test.txt
+      - name: Lint
+        run: |
+          ruff check custom_components tests
+          ruff format --check custom_components tests
+      - name: Tests (couverture 100 %)
+        run: pytest --cov --cov-report=term-missing
+      - name: Validation hassfest et HACS
+        run: python -c "import json; json.load(open('hacs.json')); json.load(open('custom_components/domum/manifest.json'))"
