@@ -29,6 +29,7 @@ def operations(**changes):
                     "name": "VPS",
                     "status": "alert",
                     "message": "/ à 81 %",
+                    "saturated": ["/data"],
                     "since": None,
                     "checked_at": None,
                     "data": {"metrics": METRICS},
@@ -50,6 +51,34 @@ def operations(**changes):
                     "since": None,
                     "checked_at": None,
                     "data": {"metrics": {**METRICS, "filesystems": []}},
+                },
+            ],
+            "filesystems": [
+                {
+                    "id": "s1-aaa",
+                    "name": "VPS /data",
+                    "server_id": "s1",
+                    "mount": "/data",
+                    "size_kb": 1000,
+                    "used": 96,
+                    "threshold": 95,
+                    "limit": 95,
+                    "alert": False,
+                    "present": True,
+                    "over": True,
+                },
+                {
+                    "id": "s1-bbb",
+                    "name": "VPS /media/usb",
+                    "server_id": "s1",
+                    "mount": "/media/usb",
+                    "size_kb": None,
+                    "used": None,
+                    "threshold": None,
+                    "limit": 90,
+                    "alert": True,
+                    "present": False,
+                    "over": False,
                 },
             ],
             "checks": [
@@ -124,6 +153,13 @@ async def test_monitoring_and_updates_entities(hass, aioclient_mock, entry):
     assert hass.states.get("sensor.domum_vps_fullest_disk").state == "81"
     assert hass.states.get("sensor.domum_haos_load").state == "unknown"
     assert hass.states.get("sensor.domum_vide_fullest_disk").state == "unknown"
+    assert hass.states.get("binary_sensor.domum_vps_problem").attributes["saturated"] == ["/data"]
+    assert hass.states.get("binary_sensor.domum_haos_problem").attributes["saturated"] == []
+    data = hass.states.get("sensor.domum_vps_data_usage")
+    assert data.state == "96" and data.attributes["unit_of_measurement"] == "%"
+    assert data.attributes["saturated"] is True and data.attributes["alert"] is False
+    assert data.attributes["threshold"] == 95 and data.attributes["mount"] == "/data"
+    assert hass.states.get("sensor.domum_vps_media_usb_usage").state == "unknown"
     assert hass.states.get("binary_sensor.domum_vps_fixable_critical_flaw").state == "on"
     assert hass.states.get("binary_sensor.domum_vps_fixable_high_flaw").state == "off"
     assert hass.states.get("binary_sensor.domum_vps_reboot_required").state == "on"

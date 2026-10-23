@@ -58,6 +58,9 @@
       "monitoring_disk": {
         "name": "{name} fullest disk"
       },
+      "monitoring_filesystem": {
+        "name": "{name} usage"
+      },
       "updates_packages": {
         "name": "{name} pending packages"
       }

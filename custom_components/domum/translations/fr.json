@@ -58,6 +58,9 @@
       "monitoring_disk": {
         "name": "{name} : disque le plus plein"
       },
+      "monitoring_filesystem": {
+        "name": "{name} : utilisation"
+      },
       "updates_packages": {
         "name": "{name} : paquets à mettre à jour"
       }

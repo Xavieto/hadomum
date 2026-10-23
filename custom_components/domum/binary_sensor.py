@@ -70,7 +70,12 @@ class MonitoringProblemSensor(DomumItemEntity, BinarySensorEntity):
     @property
     def extra_state_attributes(self) -> dict:
         item = self.item or {}
-        return {"message": item.get("message"), "checked_at": item.get("checked_at")}
+        return {
+            "message": item.get("message"),
+            "checked_at": item.get("checked_at"),
+            # Systèmes de fichiers saturés sans alerte (serveurs seulement, Domum 2.8.1).
+            "saturated": item.get("saturated") or [],
+        }
 
 
 class UpdatesFlagSensor(DomumItemEntity, BinarySensorEntity):

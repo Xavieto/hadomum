@@ -1,4 +1,4 @@
-"""Capteurs : état et dernière réussite de chaque sauvegarde, sessions actives du bastion."""
+"""Capteurs : sauvegardes, bastion, métriques et systèmes de fichiers supervisés, mises à jour."""
 
 from __future__ import annotations
 
@@ -104,6 +104,38 @@ class MonitoringMetricSensor(DomumItemEntity, SensorEntity):
         return max((fs["used"] for fs in metrics["filesystems"]), default=None)
 
 
+class FilesystemSensor(DomumItemEntity, SensorEntity):
+    """Utilisation d'un système de fichiers d'un serveur supervisé (Domum 2.8.1).
+
+    La saturation reste visible même quand Domum n'alerte pas pour ce point de montage.
+    """
+
+    collection = "monitoring.filesystems"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "%"
+    _attr_translation_key = "monitoring_filesystem"
+
+    def __init__(self, coordinator, item):
+        super().__init__(coordinator, item, "usage")
+
+    @property
+    def native_value(self) -> int | None:
+        return (self.item or {}).get("used")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        item = self.item or {}
+        return {
+            "server_id": item.get("server_id"),
+            "mount": item.get("mount"),
+            "size_kb": item.get("size_kb"),
+            "threshold": item.get("limit"),
+            "alert": item.get("alert"),
+            "saturated": item.get("over"),
+            "present": item.get("present"),
+        }
+
+
 class UpdatesPackagesSensor(DomumItemEntity, SensorEntity):
     collection = "updates"
     _attr_translation_key = "updates_packages"
@@ -136,6 +168,12 @@ async def async_setup_entry(
             MonitoringMetricSensor(coordinator, item, metric)
             for metric in ("load", "memory", "disk")
         ],
+    )
+    add_items(
+        entry,
+        async_add_entities,
+        "monitoring.filesystems",
+        lambda item: [FilesystemSensor(coordinator, item)],
     )
     add_items(
         entry, async_add_entities, "updates", lambda i: [UpdatesPackagesSensor(coordinator, i)]
