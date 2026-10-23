@@ -28,7 +28,7 @@ Les entités suivent les portées du jeton : sans écriture, pas de bouton ni d'
 | Sauvegarde | par sauvegarde : état (réussie, en échec, en retard, en cours…), dernière réussite, problème (binaire), bouton « lancer » |
 | Bastion | sessions actives, bastion en marche (binaire), bouton « couper les sessions » |
 | Mail Alias | par alias : interrupteur (écriture) ou état actif (lecture) |
-| Supervision | par serveur : anomalie (binaire), charge, mémoire, disque le plus plein ; par contrôle HTTP : anomalie |
+| Supervision | par serveur : anomalie (binaire, avec la liste des systèmes de fichiers saturés sans alerte), charge, mémoire, disque le plus plein ; par système de fichiers : utilisation en % (seuil critique, alerte, saturation en attributs, Domum 2.8.1 ou plus) ; par contrôle HTTP : anomalie |
 | Mises à jour | par serveur : faille critique corrigeable, faille haute corrigeable, redémarrage requis (binaires), paquets à mettre à jour ; boutons « mettre à jour » et « redémarrer » si Domum le permet depuis Home Assistant pour ce serveur |
 | Planning | calendrier « Planning » : sauvegardes, mises à jour planifiées, plages de maintenance (chevauchements signalés) |
 
