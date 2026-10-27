@@ -1,0 +1,21 @@
+name: Push to GitHub on Tag
+on:
+  push:
+    tags:
+      - '*' # Se déclenche lors de la création de n'importe quel tag
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Récupère tout l'historique, indispensable pour que HACS lise les commits
+
+      - name: Push to GitHub
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          git remote add github https://Xavieto:${GH_TOKEN}@github.com/Xavieto/hadomum.git
+          git push github --all
+          git push github --tags
