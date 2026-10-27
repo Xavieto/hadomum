@@ -19,18 +19,20 @@ async def _setup(hass, aioclient_mock, entry, data=None):
 async def test_entities_follow_the_state_of_domum(hass, aioclient_mock, entry):
     await _setup(hass, aioclient_mock, entry)
     assert entry.state is ConfigEntryState.LOADED
-    critique = hass.states.get("sensor.domum_critique")
+    critique = hass.states.get("sensor.domum_backup_critique")
     assert critique.state == "success"
     assert critique.attributes["last_size"] == 734000000
-    assert hass.states.get("sensor.domum_nextcloud").state == "failed"
-    assert hass.states.get("sensor.domum_critique_last_success").state.startswith("2026-10-22")
-    assert hass.states.get("binary_sensor.domum_nextcloud_problem").state == "on"
-    assert hass.states.get("binary_sensor.domum_critique_problem").state == "off"
+    assert hass.states.get("sensor.domum_backup_nextcloud").state == "failed"
+    assert hass.states.get("sensor.domum_backup_critique_last_success").state.startswith(
+        "2026-10-22"
+    )
+    assert hass.states.get("binary_sensor.domum_backup_nextcloud_problem").state == "on"
+    assert hass.states.get("binary_sensor.domum_backup_critique_problem").state == "off"
     assert hass.states.get("sensor.domum_bastion_active_sessions").state == "2"
     assert hass.states.get("binary_sensor.domum_bastion").state == "on"
-    assert hass.states.get("switch.domum_achats_roques_bzh").state == "on"
-    assert hass.states.get("button.domum_critique_run") is not None
-    assert hass.states.get("button.domum_cut_bastion_sessions") is not None
+    assert hass.states.get("switch.domum_mail_alias_achats_roques_bzh").state == "on"
+    assert hass.states.get("button.domum_backup_critique_run") is not None
+    assert hass.states.get("button.domum_bastion_kill_sessions") is not None
 
 
 async def test_new_items_get_entities_and_vanished_ones_become_unavailable(
@@ -42,17 +44,17 @@ async def test_new_items_get_entities_and_vanished_ones_become_unavailable(
     data["backups"] = [{**data["backups"][0], "id": "b3", "name": "Immich", "state": "weird"}]
     coordinator.async_set_updated_data(data)
     await hass.async_block_till_done()
-    assert hass.states.get("sensor.domum_immich").state == "unknown"
-    assert hass.states.get("sensor.domum_critique").state == "unavailable"
+    assert hass.states.get("sensor.domum_backup_immich").state == "unknown"
+    assert hass.states.get("sensor.domum_backup_critique").state == "unavailable"
 
 
 async def test_read_only_tokens_get_no_actions(hass, aioclient_mock, entry):
     data = state(scopes={"backup": "read", "alias": "read"})
     del data["bastion"]
     await _setup(hass, aioclient_mock, entry, data)
-    assert hass.states.get("button.domum_critique_run") is None
-    assert hass.states.get("switch.domum_achats_roques_bzh") is None
-    assert hass.states.get("binary_sensor.domum_achats_roques_bzh").state == "on"
+    assert hass.states.get("button.domum_backup_critique_run") is None
+    assert hass.states.get("switch.domum_mail_alias_achats_roques_bzh") is None
+    assert hass.states.get("binary_sensor.domum_mail_alias_achats_roques_bzh").state == "on"
     assert hass.states.get("sensor.domum_bastion_active_sessions") is None
 
 
@@ -72,17 +74,20 @@ async def test_buttons_and_switches_call_domum(hass, aioclient_mock, entry):
     aioclient_mock.post(f"{API}/bastion/kill-all", json={"killed": 2})
     aioclient_mock.patch(f"{API}/aliases/a1", json={})
     await hass.services.async_call(
-        "button", "press", {"entity_id": "button.domum_critique_run"}, blocking=True
+        "button", "press", {"entity_id": "button.domum_backup_critique_run"}, blocking=True
     )
     await hass.services.async_call(
         "button",
         "press",
-        {"entity_id": "button.domum_cut_bastion_sessions"},
+        {"entity_id": "button.domum_bastion_kill_sessions"},
         blocking=True,
     )
     for service in ("turn_off", "turn_on"):
         await hass.services.async_call(
-            "switch", service, {"entity_id": "switch.domum_achats_roques_bzh"}, blocking=True
+            "switch",
+            service,
+            {"entity_id": "switch.domum_mail_alias_achats_roques_bzh"},
+            blocking=True,
         )
     calls = [(method, str(url)) for method, url, *_ in aioclient_mock.mock_calls]
     assert ("POST", f"{API}/backups/b1/run") in calls
@@ -98,18 +103,21 @@ async def test_domum_errors_are_reported_to_the_user(hass, aioclient_mock, entry
     aioclient_mock.patch(f"{API}/aliases/a1", status=502, text="pas du JSON")
     with pytest.raises(HomeAssistantError, match="Déjà en cours"):
         await hass.services.async_call(
-            "button", "press", {"entity_id": "button.domum_critique_run"}, blocking=True
+            "button", "press", {"entity_id": "button.domum_backup_critique_run"}, blocking=True
         )
     with pytest.raises(HomeAssistantError, match="HTTP 403"):
         await hass.services.async_call(
             "button",
             "press",
-            {"entity_id": "button.domum_cut_bastion_sessions"},
+            {"entity_id": "button.domum_bastion_kill_sessions"},
             blocking=True,
         )
     with pytest.raises(HomeAssistantError, match="HTTP 502"):
         await hass.services.async_call(
-            "switch", "turn_off", {"entity_id": "switch.domum_achats_roques_bzh"}, blocking=True
+            "switch",
+            "turn_off",
+            {"entity_id": "switch.domum_mail_alias_achats_roques_bzh"},
+            blocking=True,
         )
 
 

@@ -30,7 +30,7 @@
   "entity": {
     "sensor": {
       "backup_state": {
-        "name": "{name}",
+        "name": "Backup - {name}",
         "state": {
           "success": "Succeeded",
           "partial": "Partial",
@@ -44,67 +44,67 @@
         }
       },
       "backup_last_success": {
-        "name": "{name} last success"
+        "name": "Backup - {name} last success"
       },
       "bastion_sessions": {
-        "name": "Bastion active sessions"
+        "name": "Bastion - Active sessions"
       },
       "monitoring_load": {
-        "name": "{name} load"
+        "name": "Monitoring - {name} load"
       },
       "monitoring_memory": {
-        "name": "{name} memory"
+        "name": "Monitoring - {name} memory"
       },
       "monitoring_disk": {
-        "name": "{name} fullest disk"
+        "name": "Monitoring - {name} fullest disk"
       },
       "monitoring_filesystem": {
-        "name": "{name} usage"
+        "name": "Monitoring - {name} usage"
       },
       "updates_packages": {
-        "name": "{name} pending packages"
+        "name": "Updates - {name} pending packages"
       }
     },
     "binary_sensor": {
       "backup_problem": {
-        "name": "{name} problem"
+        "name": "Backup - {name} problem"
       },
       "bastion_running": {
         "name": "Bastion"
       },
       "alias_active": {
-        "name": "{name}"
+        "name": "Mail Alias - {name}"
       },
       "monitoring_problem": {
-        "name": "{name} problem"
+        "name": "Monitoring - {name} problem"
       },
       "critical_fixable": {
-        "name": "{name} fixable critical flaw"
+        "name": "Updates - {name} fixable critical flaw"
       },
       "high_fixable": {
-        "name": "{name} fixable high flaw"
+        "name": "Updates - {name} fixable high flaw"
       },
       "reboot_required": {
-        "name": "{name} reboot required"
+        "name": "Updates - {name} reboot required"
       }
     },
     "button": {
       "backup_run": {
-        "name": "{name} run"
+        "name": "Backup - {name} run"
       },
       "bastion_kill": {
-        "name": "Cut bastion sessions"
+        "name": "Bastion - Kill sessions"
       },
       "server_update": {
-        "name": "{name} update"
+        "name": "Updates - {name} update"
       },
       "server_reboot": {
-        "name": "{name} reboot"
+        "name": "Updates - {name} reboot"
       }
     },
     "switch": {
       "alias": {
-        "name": "{name}"
+        "name": "Mail Alias - {name}"
       }
     },
     "calendar": {
