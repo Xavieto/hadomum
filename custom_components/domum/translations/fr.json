@@ -63,6 +63,9 @@
       },
       "updates_packages": {
         "name": "Mises à jour - {name} : paquets à mettre à jour"
+      },
+      "multimedia_latest": {
+        "name": "Multimédia - Derniers ajouts"
       }
     },
     "binary_sensor": {
@@ -100,6 +103,9 @@
       },
       "server_reboot": {
         "name": "Mises à jour - {name} : redémarrer"
+      },
+      "multimedia_purge": {
+        "name": "Multimédia - Purger"
       }
     },
     "switch": {

@@ -275,3 +275,42 @@ def test_events_without_servers_have_no_description():
         }
     )
     assert (event.summary, event.description) == ("autre : X", None)
+
+
+async def test_multimedia_latest_additions_and_purge(hass, aioclient_mock, entry):
+    latest = [
+        {
+            "id": "n1",
+            "title": "Frieren",
+            "detail": "S02E05",
+            "category": "Animes",
+            "added_at": "2026-10-27T21:00:00+00:00",
+        }
+    ]
+    data = operations(
+        scopes={"multimedia": "write"},
+        multimedia={"latest": latest, "purgeable": 3, "last_purge": None},
+    )
+    await _setup(hass, aioclient_mock, entry, data)
+    sensor = hass.states.get("sensor.domum_multimedia_latest_additions")
+    assert sensor.state == "1" and sensor.attributes["items"] == latest
+    assert sensor.attributes["purgeable"] == 3
+    aioclient_mock.post(f"{API}/multimedia/purge", status=202, json={"id": "p1"})
+    await hass.services.async_call(
+        "button", "press", {"entity_id": "button.domum_multimedia_purge"}, blocking=True
+    )
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"{API}/state", json=data)
+    aioclient_mock.post(
+        f"{API}/multimedia/purge", status=409, json={"detail": "Une purge est déjà en cours"}
+    )
+    with pytest.raises(HomeAssistantError, match="déjà en cours"):
+        await hass.services.async_call(
+            "button", "press", {"entity_id": "button.domum_multimedia_purge"}, blocking=True
+        )
+
+
+async def test_multimedia_read_only_and_missing_data(hass, aioclient_mock, entry):
+    await _setup(hass, aioclient_mock, entry, operations(scopes={"multimedia": "read"}))
+    assert hass.states.get("button.domum_multimedia_purge") is None
+    assert hass.states.get("sensor.domum_multimedia_latest_additions").state == "unavailable"

@@ -63,6 +63,9 @@
       },
       "updates_packages": {
         "name": "Updates - {name} pending packages"
+      },
+      "multimedia_latest": {
+        "name": "Multimedia - Latest additions"
       }
     },
     "binary_sensor": {
@@ -100,6 +103,9 @@
       },
       "server_reboot": {
         "name": "Updates - {name} reboot"
+      },
+      "multimedia_purge": {
+        "name": "Multimedia - Purge"
       }
     },
     "switch": {

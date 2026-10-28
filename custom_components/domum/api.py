@@ -64,6 +64,9 @@ class DomumClient:
     async def kill_sessions(self) -> dict:
         return await self._request("POST", "/bastion/kill-all")
 
+    async def purge_media(self) -> dict:
+        return await self._request("POST", "/multimedia/purge")
+
     async def set_alias(self, alias_id: str, active: bool) -> dict:
         return await self._request("PATCH", f"/aliases/{alias_id}", {"active": active})
 

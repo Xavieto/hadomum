@@ -30,6 +30,7 @@ Les entités suivent les portées du jeton : sans écriture, pas de bouton ni d'
 | Mail Alias | par alias : interrupteur (écriture) ou état actif (lecture) |
 | Supervision | par serveur : anomalie (binaire, avec la liste des systèmes de fichiers saturés sans alerte), charge, mémoire, disque le plus plein ; par système de fichiers : utilisation en % (seuil critique, alerte, saturation en attributs, Domum 2.8.1 ou plus) ; par contrôle HTTP : anomalie |
 | Mises à jour | par serveur : faille critique corrigeable, faille haute corrigeable, redémarrage requis (binaires), paquets à mettre à jour ; boutons « mettre à jour » et « redémarrer » si Domum le permet depuis Home Assistant pour ce serveur |
+| Multimédia | derniers ajouts de Jellyfin (nombre ; liste en attribut `items`, épisodes à purger en `purgeable`), bouton « purger » (écriture) — Domum 2.9.0 |
 | Planning | calendrier « Planning » : sauvegardes, mises à jour planifiées, tâches de l'ordonnanceur, plages de maintenance (chevauchements signalés) |
 
 Chaque nom d'entité commence par son module (« Sauvegarde - Critique : lancer », « Supervision -
