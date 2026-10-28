@@ -124,6 +124,14 @@ def calendar_events(start, end):
             "clash": True,
         },
         {
+            "kind": "task",
+            "title": "Purge CCTV",
+            "start": (now + timedelta(hours=4)).isoformat(),
+            "end": (now + timedelta(hours=5)).isoformat(),
+            "servers": ["CCTV"],
+            "clash": False,
+        },
+        {
             "kind": "maintenance",
             "title": "Maintenance",
             "start": (now + timedelta(hours=1)).isoformat(),
@@ -145,34 +153,41 @@ async def _setup(hass, aioclient_mock, entry, data=None, calendar=None):
 
 async def test_monitoring_and_updates_entities(hass, aioclient_mock, entry):
     await _setup(hass, aioclient_mock, entry)
-    assert hass.states.get("binary_sensor.domum_vps_problem").state == "on"
-    assert hass.states.get("binary_sensor.domum_vps_problem").attributes["message"] == "/ à 81 %"
-    assert hass.states.get("binary_sensor.domum_cloud_problem").state == "off"
-    assert hass.states.get("sensor.domum_vps_load").state == "0.42"
-    assert hass.states.get("sensor.domum_vps_memory").state == "62.0"
-    assert hass.states.get("sensor.domum_vps_fullest_disk").state == "81"
-    assert hass.states.get("sensor.domum_haos_load").state == "unknown"
-    assert hass.states.get("sensor.domum_vide_fullest_disk").state == "unknown"
-    assert hass.states.get("binary_sensor.domum_vps_problem").attributes["saturated"] == ["/data"]
-    assert hass.states.get("binary_sensor.domum_haos_problem").attributes["saturated"] == []
-    data = hass.states.get("sensor.domum_vps_data_usage")
+    assert hass.states.get("binary_sensor.domum_monitoring_vps_problem").state == "on"
+    assert (
+        hass.states.get("binary_sensor.domum_monitoring_vps_problem").attributes["message"]
+        == "/ à 81 %"
+    )
+    assert hass.states.get("binary_sensor.domum_monitoring_cloud_problem").state == "off"
+    assert hass.states.get("sensor.domum_monitoring_vps_load").state == "0.42"
+    assert hass.states.get("sensor.domum_monitoring_vps_memory").state == "62.0"
+    assert hass.states.get("sensor.domum_monitoring_vps_fullest_disk").state == "81"
+    assert hass.states.get("sensor.domum_monitoring_haos_load").state == "unknown"
+    assert hass.states.get("sensor.domum_monitoring_vide_fullest_disk").state == "unknown"
+    assert hass.states.get("binary_sensor.domum_monitoring_vps_problem").attributes[
+        "saturated"
+    ] == ["/data"]
+    assert (
+        hass.states.get("binary_sensor.domum_monitoring_haos_problem").attributes["saturated"] == []
+    )
+    data = hass.states.get("sensor.domum_monitoring_vps_data_usage")
     assert data.state == "96" and data.attributes["unit_of_measurement"] == "%"
     assert data.attributes["saturated"] is True and data.attributes["alert"] is False
     assert data.attributes["threshold"] == 95 and data.attributes["mount"] == "/data"
-    assert hass.states.get("sensor.domum_vps_media_usb_usage").state == "unknown"
-    assert hass.states.get("binary_sensor.domum_vps_fixable_critical_flaw").state == "on"
-    assert hass.states.get("binary_sensor.domum_vps_fixable_high_flaw").state == "off"
-    assert hass.states.get("binary_sensor.domum_vps_reboot_required").state == "on"
-    assert hass.states.get("sensor.domum_vps_pending_packages").state == "12"
-    assert hass.states.get("button.domum_vps_update") is not None
-    assert hass.states.get("button.domum_vps_reboot") is None
+    assert hass.states.get("sensor.domum_monitoring_vps_media_usb_usage").state == "unknown"
+    assert hass.states.get("binary_sensor.domum_updates_vps_fixable_critical_flaw").state == "on"
+    assert hass.states.get("binary_sensor.domum_updates_vps_fixable_high_flaw").state == "off"
+    assert hass.states.get("binary_sensor.domum_updates_vps_reboot_required").state == "on"
+    assert hass.states.get("sensor.domum_updates_vps_pending_packages").state == "12"
+    assert hass.states.get("button.domum_updates_vps_update") is not None
+    assert hass.states.get("button.domum_updates_vps_reboot") is None
 
 
 async def test_server_actions(hass, aioclient_mock, entry):
     await _setup(hass, aioclient_mock, entry)
     aioclient_mock.post(f"{API}/servers/s1/update", status=202, json={"id": "r1"})
     await hass.services.async_call(
-        "button", "press", {"entity_id": "button.domum_vps_update"}, blocking=True
+        "button", "press", {"entity_id": "button.domum_updates_vps_update"}, blocking=True
     )
     aioclient_mock.clear_requests()
     aioclient_mock.get(f"{API}/state", json=operations())
@@ -183,14 +198,14 @@ async def test_server_actions(hass, aioclient_mock, entry):
     )
     with pytest.raises(HomeAssistantError, match="pas permise"):
         await hass.services.async_call(
-            "button", "press", {"entity_id": "button.domum_vps_update"}, blocking=True
+            "button", "press", {"entity_id": "button.domum_updates_vps_update"}, blocking=True
         )
 
 
 async def test_read_only_updates_get_no_buttons(hass, aioclient_mock, entry):
     data = operations(scopes={"updates": "read"})
     await _setup(hass, aioclient_mock, entry, data)
-    assert hass.states.get("button.domum_vps_update") is None
+    assert hass.states.get("button.domum_updates_vps_update") is None
     assert hass.states.get("calendar.domum_planning") is None
 
 
@@ -211,8 +226,16 @@ async def test_the_planning_calendar(hass, aioclient_mock, entry):
         return_response=True,
     )
     events = response["calendar.domum_planning"]["events"]
-    # Deux requêtes de 31 jours au plus : les évènements sont repris pour chaque période.
-    assert len(events) == 4
+    # Deux requêtes de 28 jours au plus : les évènements sont repris pour chaque période.
+    assert len(events) == 6
+    assert any(e["summary"] == "Tâche : Purge CCTV" for e in events)
+    spans = [
+        dt_util.parse_datetime(url.query["end"]) - dt_util.parse_datetime(url.query["start"])
+        for method, url, *_ in aioclient_mock.mock_calls
+        if url.path.endswith("/calendar")
+    ]
+    # Une heure de plus au changement d'heure : toujours sous la limite de 31 jours de Domum.
+    assert max(spans) < timedelta(days=31)
     assert any(
         e["summary"] == "Sauvegarde : Domum (chevauchement)" and e["description"] == "VPS"
         for e in events
@@ -252,3 +275,42 @@ def test_events_without_servers_have_no_description():
         }
     )
     assert (event.summary, event.description) == ("autre : X", None)
+
+
+async def test_multimedia_latest_additions_and_purge(hass, aioclient_mock, entry):
+    latest = [
+        {
+            "id": "n1",
+            "title": "Frieren",
+            "detail": "S02E05",
+            "category": "Animes",
+            "added_at": "2026-10-27T21:00:00+00:00",
+        }
+    ]
+    data = operations(
+        scopes={"multimedia": "write"},
+        multimedia={"latest": latest, "purgeable": 3, "last_purge": None},
+    )
+    await _setup(hass, aioclient_mock, entry, data)
+    sensor = hass.states.get("sensor.domum_multimedia_latest_additions")
+    assert sensor.state == "1" and sensor.attributes["items"] == latest
+    assert sensor.attributes["purgeable"] == 3
+    aioclient_mock.post(f"{API}/multimedia/purge", status=202, json={"id": "p1"})
+    await hass.services.async_call(
+        "button", "press", {"entity_id": "button.domum_multimedia_purge"}, blocking=True
+    )
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"{API}/state", json=data)
+    aioclient_mock.post(
+        f"{API}/multimedia/purge", status=409, json={"detail": "Une purge est déjà en cours"}
+    )
+    with pytest.raises(HomeAssistantError, match="déjà en cours"):
+        await hass.services.async_call(
+            "button", "press", {"entity_id": "button.domum_multimedia_purge"}, blocking=True
+        )
+
+
+async def test_multimedia_read_only_and_missing_data(hass, aioclient_mock, entry):
+    await _setup(hass, aioclient_mock, entry, operations(scopes={"multimedia": "read"}))
+    assert hass.states.get("button.domum_multimedia_purge") is None
+    assert hass.states.get("sensor.domum_multimedia_latest_additions").state == "unavailable"

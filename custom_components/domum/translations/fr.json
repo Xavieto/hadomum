@@ -30,7 +30,7 @@
   "entity": {
     "sensor": {
       "backup_state": {
-        "name": "{name}",
+        "name": "Sauvegarde - {name}",
         "state": {
           "success": "Réussie",
           "partial": "Partielle",
@@ -44,67 +44,73 @@
         }
       },
       "backup_last_success": {
-        "name": "{name} : dernière réussite"
+        "name": "Sauvegarde - {name} : dernière réussite"
       },
       "bastion_sessions": {
-        "name": "Sessions actives du bastion"
+        "name": "Bastion - Sessions actives"
       },
       "monitoring_load": {
-        "name": "{name} : charge"
+        "name": "Supervision - {name} : charge"
       },
       "monitoring_memory": {
-        "name": "{name} : mémoire"
+        "name": "Supervision - {name} : mémoire"
       },
       "monitoring_disk": {
-        "name": "{name} : disque le plus plein"
+        "name": "Supervision - {name} : disque le plus plein"
       },
       "monitoring_filesystem": {
-        "name": "{name} : utilisation"
+        "name": "Supervision - {name} : utilisation"
       },
       "updates_packages": {
-        "name": "{name} : paquets à mettre à jour"
+        "name": "Mises à jour - {name} : paquets à mettre à jour"
+      },
+      "multimedia_latest": {
+        "name": "Multimédia - Derniers ajouts"
       }
     },
     "binary_sensor": {
       "backup_problem": {
-        "name": "{name} : problème"
+        "name": "Sauvegarde - {name} : problème"
       },
       "bastion_running": {
         "name": "Bastion"
       },
       "alias_active": {
-        "name": "{name}"
+        "name": "Mail Alias - {name}"
       },
       "monitoring_problem": {
-        "name": "{name} : anomalie"
+        "name": "Supervision - {name} : anomalie"
       },
       "critical_fixable": {
-        "name": "{name} : faille critique corrigeable"
+        "name": "Mises à jour - {name} : faille critique corrigeable"
       },
       "high_fixable": {
-        "name": "{name} : faille haute corrigeable"
+        "name": "Mises à jour - {name} : faille haute corrigeable"
       },
       "reboot_required": {
-        "name": "{name} : redémarrage requis"
+        "name": "Mises à jour - {name} : redémarrage requis"
       }
     },
     "button": {
       "backup_run": {
-        "name": "{name} : lancer"
+        "name": "Sauvegarde - {name} : lancer"
       },
       "bastion_kill": {
-        "name": "Couper les sessions du bastion"
+        "name": "Bastion - Couper les sessions"
       },
       "server_update": {
-        "name": "{name} : mettre à jour"
+        "name": "Mises à jour - {name} : mettre à jour"
       },
       "server_reboot": {
-        "name": "{name} : redémarrer"
+        "name": "Mises à jour - {name} : redémarrer"
+      },
+      "multimedia_purge": {
+        "name": "Multimédia - Purger"
       }
     },
     "switch": {
       "alias": {
-        "name": "{name}"
+        "name": "Mail Alias - {name}"
       }
     },
     "calendar": {

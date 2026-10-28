@@ -79,6 +79,29 @@ class BastionSessionsSensor(DomumEntity, SensorEntity):
         return self.coordinator.data.get("bastion", {}).get("active_sessions")
 
 
+class MultimediaLatestSensor(DomumEntity, SensorEntity):
+    """Derniers ajouts de Jellyfin (Domum #96) : nombre, liste en attributs."""
+
+    _attr_translation_key = "multimedia_latest"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator, "multimedia_latest")
+
+    @property
+    def available(self) -> bool:
+        return super().available and "multimedia" in self.coordinator.data
+
+    @property
+    def native_value(self) -> int | None:
+        return len(self.coordinator.data.get("multimedia", {}).get("latest") or [])
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        media = self.coordinator.data.get("multimedia", {})
+        return {"items": media.get("latest") or [], "purgeable": media.get("purgeable")}
+
+
 class MonitoringMetricSensor(DomumItemEntity, SensorEntity):
     """Charge, mémoire ou système de fichiers le plus plein d'un serveur supervisé."""
 
@@ -160,6 +183,8 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     if coordinator.can("bastion"):
         async_add_entities([BastionSessionsSensor(coordinator)])
+    if coordinator.can("multimedia"):
+        async_add_entities([MultimediaLatestSensor(coordinator)])
     add_items(
         entry,
         async_add_entities,

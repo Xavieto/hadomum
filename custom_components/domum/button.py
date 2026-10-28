@@ -1,4 +1,4 @@
-"""Boutons : lancer une sauvegarde, couper toutes les sessions du bastion."""
+"""Boutons : lancer une sauvegarde, couper les sessions du bastion, purger le Multimédia."""
 
 from __future__ import annotations
 
@@ -41,6 +41,22 @@ class BastionKillButton(DomumEntity, ButtonEntity):
         await self.coordinator.async_request_refresh()
 
 
+class MultimediaPurgeButton(DomumEntity, ButtonEntity):
+    """Purge des épisodes vus (Domum #96), mêmes règles que la purge planifiée."""
+
+    _attr_translation_key = "multimedia_purge"
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator, "multimedia_purge")
+
+    async def async_press(self) -> None:
+        try:
+            await self.coordinator.client.purge_media()
+        except DomumError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+        await self.coordinator.async_request_refresh()
+
+
 class ServerActionButton(DomumItemEntity, ButtonEntity):
     """Mise à jour ou redémarrage d'un serveur, si Domum le permet depuis Home Assistant."""
 
@@ -65,6 +81,8 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     if coordinator.can("bastion", "write"):
         async_add_entities([BastionKillButton(coordinator)])
+    if coordinator.can("multimedia", "write"):
+        async_add_entities([MultimediaPurgeButton(coordinator)])
     if coordinator.can("updates", "write"):
         add_items(
             entry,

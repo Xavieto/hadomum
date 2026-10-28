@@ -14,8 +14,15 @@ from .api import DomumError
 from .coordinator import DomumConfigEntry
 from .entity import DomumEntity
 
-SPAN = timedelta(days=31)  # période maximale d'une requête à Domum
-KINDS = {"backup": "Sauvegarde", "update": "Mise à jour", "maintenance": "Maintenance"}
+# Tranches de 28 jours : une tranche découpée en heure locale peut durer une heure de plus au
+# passage à l'heure d'hiver, et Domum refuse plus de 31 jours (#4).
+SPAN = timedelta(days=28)
+KINDS = {
+    "backup": "Sauvegarde",
+    "update": "Mise à jour",
+    "maintenance": "Maintenance",
+    "task": "Tâche",
+}
 
 
 def _event(data: dict) -> CalendarEvent:
