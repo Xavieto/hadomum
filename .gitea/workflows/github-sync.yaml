@@ -16,6 +16,27 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          git remote add github https://Xavieto:${GH_TOKEN}@github.com/Xavieto/hadomum.git
+          set -eu
+          git remote add github "https://Xavieto:${GH_TOKEN}@github.com/Xavieto/hadomum.git"
           git push github --all
-          git push github --tags
+
+          # Tags : `git push --tags` échoue dès qu'un tag existe déjà sur GitHub sous une autre forme
+          # (tag annoté ici, tag léger là-bas) alors qu'il désigne le même commit. On compare donc les
+          # commits : tag absent -> poussé ; même commit -> rien à faire ; commit différent -> avertissement,
+          # jamais de réécriture d'un tag publié (HACS s'appuie dessus), et le job n'échoue pas.
+          remote_tags=$(git ls-remote --tags github)
+          for tag in $(git tag); do
+            local_commit=$(git rev-parse "${tag}^{commit}")
+            remote_commit=$(printf '%s\n' "$remote_tags" | awk -v ref="refs/tags/${tag}" '
+              $2 == ref "^{}" { peeled = $1 }
+              $2 == ref       { plain = $1 }
+              END { print (peeled != "" ? peeled : plain) }')
+            if [ -z "$remote_commit" ]; then
+              echo "Tag ${tag} absent de GitHub : poussé."
+              git push github "refs/tags/${tag}"
+            elif [ "$remote_commit" = "$local_commit" ]; then
+              echo "Tag ${tag} déjà sur GitHub (même commit ${local_commit}) : rien à faire."
+            else
+              echo "::warning::Tag ${tag} existe déjà sur GitHub sur un autre commit (${remote_commit}) que sur Gitea (${local_commit}) : non modifié."
+            fi
+          done
