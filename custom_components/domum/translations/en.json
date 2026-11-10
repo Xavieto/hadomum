@@ -66,6 +66,22 @@
       },
       "multimedia_latest": {
         "name": "Multimedia - Latest additions"
+      },
+      "family_remaining": {
+        "name": "Remaining time"
+      },
+      "family_used": {
+        "name": "Time used"
+      },
+      "family_state": {
+        "name": "State",
+        "state": {
+          "open": "Open",
+          "closed": "Closed",
+          "paused": "Paused",
+          "punished": "Punished",
+          "exhausted": "Time exhausted"
+        }
       }
     },
     "binary_sensor": {
@@ -89,6 +105,9 @@
       },
       "reboot_required": {
         "name": "Updates - {name} reboot required"
+      },
+      "family_online": {
+        "name": "Online"
       }
     },
     "button": {
@@ -106,11 +125,29 @@
       },
       "multimedia_purge": {
         "name": "Multimedia - Purge"
+      },
+      "family_bonus_15": {
+        "name": "Add 15 minutes"
+      },
+      "family_bonus_30": {
+        "name": "Add 30 minutes"
+      },
+      "family_bonus_60": {
+        "name": "Add 1 hour"
       }
     },
     "switch": {
       "alias": {
         "name": "Mail Alias - {name}"
+      },
+      "family_internet": {
+        "name": "Internet"
+      },
+      "family_punish": {
+        "name": "Punishment"
+      },
+      "family_vacation": {
+        "name": "Vacation mode"
       }
     },
     "calendar": {
@@ -125,6 +162,12 @@
     },
     "no_alias_write": {
       "message": "This token cannot write aliases"
+    },
+    "no_family_write": {
+      "message": "This token cannot write Family"
+    },
+    "unknown_child": {
+      "message": "Child not found: {child}"
     }
   },
   "services": {
@@ -144,6 +187,94 @@
           "name": "Domain",
           "description": "Optional when Domum has a single domain."
         }
+      }
+    },
+    "add_time": {
+      "name": "Add time",
+      "description": "Adds minutes to the child's time for today.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Domum entry",
+          "description": "Optional when a single entry is configured."
+        },
+        "child": {
+          "name": "Child",
+          "description": "Child's first name or identifier."
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "Duration in minutes."
+        }
+      }
+    },
+    "punish": {
+      "name": "Punish a child",
+      "description": "Applies a punishment (duration and mode from the integration options by default).",
+      "fields": {
+        "config_entry_id": {
+          "name": "Domum entry",
+          "description": "Optional when a single entry is configured."
+        },
+        "child": {
+          "name": "Child",
+          "description": "Child's first name or identifier."
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "Duration in minutes."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Punishment profile or Internet cut."
+        }
+      }
+    },
+    "lift_punishment": {
+      "name": "Lift a punishment",
+      "description": "Lifts a child's current punishment.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Domum entry",
+          "description": "Optional when a single entry is configured."
+        },
+        "child": {
+          "name": "Child",
+          "description": "Child's first name or identifier."
+        }
+      }
+    },
+    "family_event": {
+      "name": "Family event",
+      "description": "Triggers in Domum the action bound to an event (alarm in night mode...).",
+      "fields": {
+        "config_entry_id": {
+          "name": "Domum entry",
+          "description": "Optional when a single entry is configured."
+        },
+        "event": {
+          "name": "Event",
+          "description": "Event name defined in Domum."
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Switch punishment",
+        "description": "Duration and mode applied when the \"Punishment\" switch is turned on.",
+        "data": {
+          "punish_minutes": "Punishment duration (minutes)",
+          "punish_mode": "Punishment mode"
+        }
+      }
+    }
+  },
+  "selector": {
+    "punish_mode": {
+      "options": {
+        "profile": "Punishment profile",
+        "cut": "Internet cut"
       }
     }
   }

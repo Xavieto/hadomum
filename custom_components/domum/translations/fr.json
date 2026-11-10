@@ -66,6 +66,22 @@
       },
       "multimedia_latest": {
         "name": "Multimédia - Derniers ajouts"
+      },
+      "family_remaining": {
+        "name": "Temps restant"
+      },
+      "family_used": {
+        "name": "Temps utilisé"
+      },
+      "family_state": {
+        "name": "État",
+        "state": {
+          "open": "Ouvert",
+          "closed": "Fermé",
+          "paused": "En pause",
+          "punished": "Puni",
+          "exhausted": "Temps épuisé"
+        }
       }
     },
     "binary_sensor": {
@@ -89,6 +105,9 @@
       },
       "reboot_required": {
         "name": "Mises à jour - {name} : redémarrage requis"
+      },
+      "family_online": {
+        "name": "Connecté"
       }
     },
     "button": {
@@ -106,11 +125,29 @@
       },
       "multimedia_purge": {
         "name": "Multimédia - Purger"
+      },
+      "family_bonus_15": {
+        "name": "Ajouter 15 minutes"
+      },
+      "family_bonus_30": {
+        "name": "Ajouter 30 minutes"
+      },
+      "family_bonus_60": {
+        "name": "Ajouter 1 heure"
       }
     },
     "switch": {
       "alias": {
         "name": "Mail Alias - {name}"
+      },
+      "family_internet": {
+        "name": "Internet"
+      },
+      "family_punish": {
+        "name": "Punition"
+      },
+      "family_vacation": {
+        "name": "Mode vacances"
       }
     },
     "calendar": {
@@ -125,6 +162,12 @@
     },
     "no_alias_write": {
       "message": "Ce jeton n'a pas l'écriture sur les alias"
+    },
+    "no_family_write": {
+      "message": "Ce jeton n'a pas l'écriture sur la Famille"
+    },
+    "unknown_child": {
+      "message": "Enfant introuvable : {child}"
     }
   },
   "services": {
@@ -144,6 +187,94 @@
           "name": "Domaine",
           "description": "Facultatif si Domum n'a qu'un domaine."
         }
+      }
+    },
+    "add_time": {
+      "name": "Ajouter du temps",
+      "description": "Ajoute des minutes au temps de l'enfant pour aujourd'hui.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Entrée Domum",
+          "description": "Facultatif si une seule entrée est configurée."
+        },
+        "child": {
+          "name": "Enfant",
+          "description": "Prénom ou identifiant de l'enfant."
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "Durée en minutes."
+        }
+      }
+    },
+    "punish": {
+      "name": "Punir un enfant",
+      "description": "Applique une punition (durée et mode des options de l'intégration par défaut).",
+      "fields": {
+        "config_entry_id": {
+          "name": "Entrée Domum",
+          "description": "Facultatif si une seule entrée est configurée."
+        },
+        "child": {
+          "name": "Enfant",
+          "description": "Prénom ou identifiant de l'enfant."
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "Durée en minutes."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Profil de punition ou coupure d'Internet."
+        }
+      }
+    },
+    "lift_punishment": {
+      "name": "Lever une punition",
+      "description": "Lève la punition en cours d'un enfant.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Entrée Domum",
+          "description": "Facultatif si une seule entrée est configurée."
+        },
+        "child": {
+          "name": "Enfant",
+          "description": "Prénom ou identifiant de l'enfant."
+        }
+      }
+    },
+    "family_event": {
+      "name": "Évènement Famille",
+      "description": "Déclenche dans Domum l'action associée à un évènement (alarme en mode nuit…).",
+      "fields": {
+        "config_entry_id": {
+          "name": "Entrée Domum",
+          "description": "Facultatif si une seule entrée est configurée."
+        },
+        "event": {
+          "name": "Évènement",
+          "description": "Nom de l'évènement défini dans Domum."
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Punition de l'interrupteur",
+        "description": "Durée et mode appliqués quand l'interrupteur « Punition » est activé.",
+        "data": {
+          "punish_minutes": "Durée de la punition (minutes)",
+          "punish_mode": "Mode de la punition"
+        }
+      }
+    }
+  },
+  "selector": {
+    "punish_mode": {
+      "options": {
+        "profile": "Profil de punition",
+        "cut": "Coupure d'Internet"
       }
     }
   }

@@ -5,12 +5,13 @@ from __future__ import annotations
 from datetime import datetime
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
+from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import BACKUP_STATES
+from .const import BACKUP_STATES, FAMILY_STATES
 from .coordinator import DomumConfigEntry
-from .entity import DomumEntity, DomumItemEntity, add_items
+from .entity import DomumEntity, DomumFamilyEntity, DomumItemEntity, add_items
 
 
 def _time(value: str | None) -> datetime | None:
@@ -177,6 +178,45 @@ class UpdatesPackagesSensor(DomumItemEntity, SensorEntity):
         return {"fixable": item.get("fixable"), "scanned_at": item.get("scanned_at")}
 
 
+class FamilyMinutesSensor(DomumFamilyEntity, SensorEntity):
+    """Temps restant (inconnu sans budget) ou utilisé aujourd'hui, en minutes."""
+
+    _attr_device_class = SensorDeviceClass.DURATION
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTime.MINUTES
+
+    def __init__(self, coordinator, item, key):
+        self._key = key
+        self._attr_translation_key = f"family_{key}"
+        super().__init__(coordinator, item, key)
+
+    @property
+    def native_value(self) -> int | None:
+        return (self.item or {}).get(f"{self._key}_minutes")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        item = self.item or {}
+        return {
+            "budget_minutes": item.get("budget_minutes"),
+            "bonus_minutes": item.get("bonus_minutes"),
+        }
+
+
+class FamilyStateSensor(DomumFamilyEntity, SensorEntity):
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = FAMILY_STATES
+    _attr_translation_key = "family_state"
+
+    def __init__(self, coordinator, item):
+        super().__init__(coordinator, item, "state")
+
+    @property
+    def native_value(self) -> str | None:
+        state = (self.item or {}).get("state")
+        return state if state in FAMILY_STATES else None
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: DomumConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
@@ -212,3 +252,14 @@ async def async_setup_entry(
             BackupLastSuccessSensor(coordinator, item),
         ],
     )
+    if coordinator.can("family"):
+        add_items(
+            entry,
+            async_add_entities,
+            "family",
+            lambda item: [
+                FamilyMinutesSensor(coordinator, item, "remaining"),
+                FamilyMinutesSensor(coordinator, item, "used"),
+                FamilyStateSensor(coordinator, item),
+            ],
+        )
