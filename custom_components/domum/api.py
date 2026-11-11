@@ -76,6 +76,26 @@ class DomumClient:
     async def calendar(self, start: str, end: str) -> list[dict]:
         return await self._request("GET", f"/calendar?start={quote(start)}&end={quote(end)}")
 
+    async def family_pause(self, person_id: str, paused: bool) -> dict:
+        return await self._request("POST", f"/family/{person_id}/pause", {"paused": paused})
+
+    async def family_bonus(self, person_id: str, minutes: int) -> dict:
+        return await self._request("POST", f"/family/{person_id}/bonus", {"minutes": minutes})
+
+    async def family_punish(self, person_id: str, mode: str, minutes: int) -> dict:
+        return await self._request(
+            "POST", f"/family/{person_id}/punish", {"mode": mode, "minutes": minutes}
+        )
+
+    async def family_lift(self, person_id: str) -> dict:
+        return await self._request("POST", f"/family/{person_id}/punish/lift")
+
+    async def family_vacation(self, person_id: str, enabled: bool) -> dict:
+        return await self._request("POST", f"/family/{person_id}/vacation", {"enabled": enabled})
+
+    async def family_event(self, event: str) -> dict:
+        return await self._request("POST", f"/family/events/{quote(event, safe='')}")
+
     async def generate_alias(self, destination: str | None, domain: str | None) -> dict:
         payload = {k: v for k, v in (("destination", destination), ("domain", domain)) if v}
         return await self._request("POST", "/aliases/generate", payload)

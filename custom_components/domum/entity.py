@@ -48,6 +48,22 @@ class DomumItemEntity(DomumEntity):
         return super().available and self.item is not None
 
 
+class DomumFamilyEntity(DomumItemEntity):
+    """Entité d'un enfant du module Famille : un appareil « Famille - <prénom> » par enfant."""
+
+    collection = "family"
+
+    def __init__(self, coordinator: DomumCoordinator, item: dict, suffix: str) -> None:
+        super().__init__(coordinator, item, suffix)
+        entry = coordinator.config_entry
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"{entry.entry_id}_family_{item['id']}")},
+            name=f"Famille - {item['name']}",
+            manufacturer="Domum",
+            via_device=(DOMAIN, entry.entry_id),
+        )
+
+
 def add_items(
     entry: DomumConfigEntry,
     add: Callable[[Iterable[Entity]], None],

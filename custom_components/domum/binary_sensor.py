@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import DomumConfigEntry
-from .entity import DomumEntity, DomumItemEntity, add_items
+from .entity import DomumEntity, DomumFamilyEntity, DomumItemEntity, add_items
 
 
 class BackupProblemSensor(DomumItemEntity, BinarySensorEntity):
@@ -94,6 +94,20 @@ class UpdatesFlagSensor(DomumItemEntity, BinarySensorEntity):
         return bool((self.item or {}).get(self._key))
 
 
+class FamilyOnlineSensor(DomumFamilyEntity, BinarySensorEntity):
+    """L'enfant a Internet (état « ouvert »)."""
+
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_translation_key = "family_online"
+
+    def __init__(self, coordinator, item):
+        super().__init__(coordinator, item, "online")
+
+    @property
+    def is_on(self) -> bool:
+        return bool((self.item or {}).get("online"))
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: DomumConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
@@ -121,4 +135,8 @@ async def async_setup_entry(
     if not coordinator.can("alias", "write"):
         add_items(
             entry, async_add_entities, "aliases", lambda i: [AliasActiveSensor(coordinator, i)]
+        )
+    if coordinator.can("family"):
+        add_items(
+            entry, async_add_entities, "family", lambda i: [FamilyOnlineSensor(coordinator, i)]
         )

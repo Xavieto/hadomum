@@ -6,12 +6,33 @@ from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
 from homeassistant.const import CONF_API_TOKEN, CONF_URL, CONF_VERIFY_SSL
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 from .api import DomumAuthError, DomumClient, DomumError
-from .const import DOMAIN
+from .const import (
+    CONF_PUNISH_MINUTES,
+    CONF_PUNISH_MODE,
+    DEFAULT_PUNISH_MINUTES,
+    DEFAULT_PUNISH_MODE,
+    DOMAIN,
+    PUNISH_MODES,
+)
 
 USER_SCHEMA = vol.Schema(
     {
@@ -22,8 +43,53 @@ USER_SCHEMA = vol.Schema(
 )
 
 
+class DomumOptionsFlow(OptionsFlow):
+    """Punition appliquée par l'interrupteur « Punition » du module Famille."""
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        if user_input is not None:
+            return self.async_create_entry(
+                data={
+                    CONF_PUNISH_MINUTES: int(user_input[CONF_PUNISH_MINUTES]),
+                    CONF_PUNISH_MODE: user_input[CONF_PUNISH_MODE],
+                }
+            )
+        options = self.config_entry.options
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_PUNISH_MINUTES,
+                    default=options.get(CONF_PUNISH_MINUTES, DEFAULT_PUNISH_MINUTES),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=1,
+                        max=10080,
+                        step=1,
+                        unit_of_measurement="min",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Required(
+                    CONF_PUNISH_MODE, default=options.get(CONF_PUNISH_MODE, DEFAULT_PUNISH_MODE)
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=PUNISH_MODES,
+                        translation_key=CONF_PUNISH_MODE,
+                        mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=schema)
+
+
 class DomumConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> DomumOptionsFlow:
+        return DomumOptionsFlow()
 
     async def _check(self, url: str, token: str, verify: bool) -> tuple[dict | None, dict]:
         session = async_get_clientsession(self.hass, verify_ssl=verify)

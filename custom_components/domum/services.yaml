@@ -13,3 +13,71 @@ generate_alias:
       example: "roques.bzh"
       selector:
         text:
+add_time:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: domum
+    child:
+      required: true
+      example: "Prénom"
+      selector:
+        text:
+    minutes:
+      required: true
+      example: 30
+      selector:
+        number:
+          min: 1
+          max: 480
+          unit_of_measurement: min
+          mode: box
+punish:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: domum
+    child:
+      required: true
+      example: "Prénom"
+      selector:
+        text:
+    minutes:
+      example: 60
+      selector:
+        number:
+          min: 1
+          max: 10080
+          unit_of_measurement: min
+          mode: box
+    mode:
+      selector:
+        select:
+          translation_key: punish_mode
+          options:
+            - profile
+            - cut
+lift_punishment:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: domum
+    child:
+      required: true
+      example: "Prénom"
+      selector:
+        text:
+family_event:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: domum
+    event:
+      required: true
+      example: "alarm_night"
+      selector:
+        text:

@@ -1,4 +1,4 @@
-"""Boutons : lancer une sauvegarde, couper les sessions du bastion, purger le Multimédia."""
+"""Boutons : sauvegarde, bastion, Multimédia, temps en plus des enfants."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .api import DomumError
 from .coordinator import DomumConfigEntry
-from .entity import DomumEntity, DomumItemEntity, add_items
+from .entity import DomumEntity, DomumFamilyEntity, DomumItemEntity, add_items
 
 
 class BackupRunButton(DomumItemEntity, ButtonEntity):
@@ -75,6 +75,25 @@ class ServerActionButton(DomumItemEntity, ButtonEntity):
         await self.coordinator.async_request_refresh()
 
 
+FAMILY_BONUSES = (15, 30, 60)
+
+
+class FamilyBonusButton(DomumFamilyEntity, ButtonEntity):
+    """Ajoute 15 minutes, 30 minutes ou 1 heure au temps de l'enfant pour aujourd'hui."""
+
+    def __init__(self, coordinator, item, minutes):
+        self._minutes = minutes
+        self._attr_translation_key = f"family_bonus_{minutes}"
+        super().__init__(coordinator, item, f"bonus_{minutes}")
+
+    async def async_press(self) -> None:
+        try:
+            await self.coordinator.client.family_bonus(self.item_id, self._minutes)
+        except DomumError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+        await self.coordinator.async_request_refresh()
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: DomumConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback
 ) -> None:
@@ -96,3 +115,10 @@ async def async_setup_entry(
         )
     if coordinator.can("backup", "write"):
         add_items(entry, async_add_entities, "backups", lambda i: [BackupRunButton(coordinator, i)])
+    if coordinator.can("family", "write"):
+        add_items(
+            entry,
+            async_add_entities,
+            "family",
+            lambda i: [FamilyBonusButton(coordinator, i, m) for m in FAMILY_BONUSES],
+        )

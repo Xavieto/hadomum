@@ -2,7 +2,7 @@
 
 Intégration personnalisée qui relie Home Assistant à [Domum](https://git.roques.bzh/tools/domum),
 l'outillage du homelab : état des sauvegardes, bastion SSH, alias mail, puis supervision,
-mises à jour et planning (Domum 2.8.0).
+mises à jour, planning (Domum 2.8.0) et contrôle parental, module Famille (Domum 2.26.0).
 
 ## Installation (HACS, dépôt personnalisé)
 
@@ -31,6 +31,7 @@ Les entités suivent les portées du jeton : sans écriture, pas de bouton ni d'
 | Supervision | par serveur : anomalie (binaire, avec la liste des systèmes de fichiers saturés sans alerte), charge, mémoire, disque le plus plein ; par système de fichiers : utilisation en % (seuil critique, alerte, saturation en attributs, Domum 2.8.1 ou plus) ; par contrôle HTTP : anomalie |
 | Mises à jour | par serveur : faille critique corrigeable, faille haute corrigeable, redémarrage requis (binaires), paquets à mettre à jour ; boutons « mettre à jour » et « redémarrer » si Domum le permet depuis Home Assistant pour ce serveur |
 | Multimédia | derniers ajouts de Jellyfin (nombre ; liste en attribut `items`, épisodes à purger en `purgeable`), bouton « purger » (écriture) — Domum 2.9.0 |
+| Famille | par enfant, un appareil « Famille - <prénom> » : temps restant (inconnu sans budget) et temps utilisé en minutes, état (ouvert, fermé, en pause, puni, temps épuisé), connecté (binaire) ; interrupteurs (écriture) « Internet » (éteint = pause), « Punition » (durée et mode des options) et « Mode vacances » ; boutons « Ajouter 15 minutes », « Ajouter 30 minutes », « Ajouter 1 heure » — jeton avec la portée `family`, Domum 2.26.0 |
 | Planning | calendrier « Planning » : sauvegardes, mises à jour planifiées, tâches de l'ordonnanceur, plages de maintenance (chevauchements signalés) |
 
 Chaque nom d'entité commence par son module (« Sauvegarde - Critique : lancer », « Supervision -
@@ -43,6 +44,67 @@ l'intégration ; un élément retiré devient indisponible.
 Exemple : couper l'accès Internet d'un serveur exposé tant qu'une faille critique corrigeable
 n'est pas corrigée (déclencheur sur `binary_sensor.domum_mises_a_jour_vps_faille_critique_corrigeable`), ou
 lancer la mise à jour du serveur de développement quand l'alarme passe en « Arm Night ».
+
+## Famille
+
+Le jeton doit avoir la portée `family` (lecture : capteurs seuls ; écriture : interrupteurs,
+boutons et services). Les entités ont pour identifiants `sensor.famille_<prénom>_remaining_time`,
+`switch.famille_<prénom>_internet`, `switch.famille_<prénom>_punishment`, etc.
+
+**Options** (Paramètres → Appareils et services → Domum → Configurer) : durée de la punition en
+minutes (60 par défaut) et mode `profile` (profil de punition) ou `cut` (coupure d'Internet),
+appliqués quand on allume l'interrupteur « Punition ». L'éteindre lève la punition.
+
+Services (l'enfant se désigne par son prénom ou son identifiant) :
+
+| Service | Champs |
+|---|---|
+| `domum.add_time` | `child`, `minutes` : temps en plus pour aujourd'hui |
+| `domum.punish` | `child`, `minutes` et `mode` facultatifs (options par défaut) |
+| `domum.lift_punishment` | `child` |
+| `domum.family_event` | `event` : déclenche l'action associée à cet évènement dans Domum ; renvoie `persons` |
+
+Automatisation : mode vacances piloté par un capteur binaire de vacances scolaires (ou un calendrier) :
+
+```yaml
+automation:
+  - alias: "Vacances scolaires : mode vacances des enfants"
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.vacances_scolaires   # ou calendar.vacances_scolaires
+    actions:
+      - action: "{{ 'switch.turn_on' if trigger.to_state.state == 'on' else 'switch.turn_off' }}"
+        target:
+          entity_id: switch.famille_<prénom>_vacation_mode
+```
+
+Automatisation : alarme en « Arm Night » -> Internet en pause pour les enfants (et reprise au
+désarmement) :
+
+```yaml
+automation:
+  - alias: "Alarme nuit : pause d'Internet des enfants"
+    triggers:
+      - trigger: state
+        entity_id: alarm_control_panel.maison
+        to: armed_night
+    actions:
+      - action: switch.turn_off      # « Internet » éteint = pause
+        target:
+          entity_id: switch.famille_<prénom>_internet
+  - alias: "Alarme désarmée : reprise d'Internet"
+    triggers:
+      - trigger: state
+        entity_id: alarm_control_panel.maison
+        to: disarmed
+    actions:
+      - action: switch.turn_on
+        target:
+          entity_id: switch.famille_<prénom>_internet
+```
+
+Pour laisser Domum décider (déclencheurs réglés dans le module Famille), appeler plutôt
+`domum.family_event` avec le nom de l'évènement.
 
 ## Service `domum.generate_alias`
 
