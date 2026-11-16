@@ -2,7 +2,7 @@
 
 Intégration personnalisée qui relie Home Assistant à [Domum](https://git.roques.bzh/tools/domum),
 l'outillage du homelab : état des sauvegardes, bastion SSH, alias mail, puis supervision,
-mises à jour, planning (Domum 2.8.0) et contrôle parental, module Famille (Domum 2.26.0).
+mises à jour, planning (Domum 2.8.0) et contrôle parental, module Famille (Domum 2.26.0) et snippets (Domum 2.28.0).
 
 ## Installation (HACS, dépôt personnalisé)
 
@@ -11,7 +11,7 @@ mises à jour, planning (Domum 2.8.0) et contrôle parental, module Famille (Dom
 2. Installer « Domum », puis redémarrer Home Assistant.
 3. Dans Domum : **Paramètres → Home Assistant → Jetons d'intégration**, créer un jeton en
    choisissant ses portées (lecture ou écriture par domaine) et les éléments exposés
-   (sauvegardes, alias, serveurs). Sa valeur n'est affichée qu'une fois.
+   (sauvegardes, alias, serveurs, snippets). Sa valeur n'est affichée qu'une fois.
 4. Home Assistant → **Paramètres → Appareils et services → Ajouter une intégration → Domum** :
    adresse de Domum et jeton.
 
@@ -32,6 +32,7 @@ Les entités suivent les portées du jeton : sans écriture, pas de bouton ni d'
 | Mises à jour | par serveur : faille critique corrigeable, faille haute corrigeable, redémarrage requis (binaires), paquets à mettre à jour ; boutons « mettre à jour » et « redémarrer » si Domum le permet depuis Home Assistant pour ce serveur |
 | Multimédia | derniers ajouts de Jellyfin (nombre ; liste en attribut `items`, épisodes à purger en `purgeable`), bouton « purger » (écriture) — Domum 2.9.0 |
 | Famille | par enfant, un appareil « Famille - <prénom> » : temps restant (inconnu sans budget) et temps utilisé en minutes, état (ouvert, fermé, en pause, puni, temps épuisé), connecté (binaire) ; interrupteurs (écriture) « Internet » (éteint = pause), « Punition » (durée et mode des options) et « Mode vacances » ; boutons « Ajouter 15 minutes », « Ajouter 30 minutes », « Ajouter 1 heure » — jeton avec la portée `family`, Domum 2.26.0 |
+| Snippets | par snippet exposé : bouton « lancer » (écriture), qui exécute ses étapes sur ses cibles ; un snippet créé dans Domum apparaît à l'actualisation suivante, un snippet supprimé devient indisponible puis disparaît au rechargement de l'intégration — jeton avec la portée `snippets` et les snippets choisis dans « éléments exposés », Domum 2.28.0 |
 | Planning | calendrier « Planning » : sauvegardes, mises à jour planifiées, tâches de l'ordonnanceur, plages de maintenance (chevauchements signalés) |
 
 Chaque nom d'entité commence par son module (« Sauvegarde - Critique : lancer », « Supervision -

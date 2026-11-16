@@ -1,4 +1,4 @@
-"""Boutons : sauvegarde, bastion, Multimédia, temps en plus des enfants."""
+"""Boutons : sauvegarde, snippets, bastion, Multimédia, temps en plus des enfants."""
 
 from __future__ import annotations
 
@@ -22,6 +22,23 @@ class BackupRunButton(DomumItemEntity, ButtonEntity):
     async def async_press(self) -> None:
         try:
             await self.coordinator.client.run_backup(self.item_id)
+        except DomumError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+        await self.coordinator.async_request_refresh()
+
+
+class SnippetRunButton(DomumItemEntity, ButtonEntity):
+    """Lance un snippet de Domum (#231) ; il apparaît ou disparaît avec l'état de Domum."""
+
+    collection = "snippets"
+    _attr_translation_key = "snippet_run"
+
+    def __init__(self, coordinator, item):
+        super().__init__(coordinator, item, "run")
+
+    async def async_press(self) -> None:
+        try:
+            await self.coordinator.client.run_snippet(self.item_id)
         except DomumError as exc:
             raise HomeAssistantError(str(exc)) from exc
         await self.coordinator.async_request_refresh()
@@ -115,6 +132,10 @@ async def async_setup_entry(
         )
     if coordinator.can("backup", "write"):
         add_items(entry, async_add_entities, "backups", lambda i: [BackupRunButton(coordinator, i)])
+    if coordinator.can("snippets", "write"):
+        add_items(
+            entry, async_add_entities, "snippets", lambda i: [SnippetRunButton(coordinator, i)]
+        )
     if coordinator.can("family", "write"):
         add_items(
             entry,
