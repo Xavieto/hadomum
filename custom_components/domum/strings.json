@@ -114,6 +114,9 @@
       "backup_run": {
         "name": "Backup - {name} run"
       },
+      "snippet_run": {
+        "name": "Snippet - {name} run"
+      },
       "bastion_kill": {
         "name": "Bastion - Kill sessions"
       },

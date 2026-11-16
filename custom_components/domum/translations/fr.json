@@ -114,6 +114,9 @@
       "backup_run": {
         "name": "Sauvegarde - {name} : lancer"
       },
+      "snippet_run": {
+        "name": "Snippet - {name} : lancer"
+      },
       "bastion_kill": {
         "name": "Bastion - Couper les sessions"
       },

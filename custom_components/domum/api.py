@@ -61,6 +61,9 @@ class DomumClient:
     async def run_backup(self, backup_id: str) -> dict:
         return await self._request("POST", f"/backups/{backup_id}/run")
 
+    async def run_snippet(self, snippet_id: str) -> dict:
+        return await self._request("POST", f"/snippets/{snippet_id}/run")
+
     async def kill_sessions(self) -> dict:
         return await self._request("POST", "/bastion/kill-all")
 
