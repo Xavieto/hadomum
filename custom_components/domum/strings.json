@@ -160,6 +160,12 @@
       },
       "blocklist_app": {
         "name": "Blocklists - {name}"
+      },
+      "proxy_route": {
+        "name": "Reverse Proxy - {name}"
+      },
+      "proxy_stream": {
+        "name": "Reverse Proxy - stream {name}"
       }
     },
     "calendar": {

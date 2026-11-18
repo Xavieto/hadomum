@@ -80,6 +80,33 @@ class BlocklistAppSwitch(DomumItemEntity, SwitchEntity):
         await self._set(False)
 
 
+class ReverseProxySwitch(DomumItemEntity, SwitchEntity):
+    """Redirection ou flux du Reverse Proxy (Domum #251), s'il autorise Home Assistant."""
+
+    def __init__(self, coordinator, item, kind):
+        self.collection = f"reverse_proxy.{kind}"
+        self._kind = kind
+        self._attr_translation_key = f"proxy_{kind[:-1]}"
+        super().__init__(coordinator, item, "switch")
+
+    @property
+    def is_on(self) -> bool:
+        return bool((self.item or {}).get("enabled"))
+
+    async def _set(self, enabled: bool) -> None:
+        try:
+            await self.coordinator.client.set_proxy(self._kind, self.item_id, enabled)
+        except DomumError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._set(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._set(False)
+
+
 class FamilySwitch(DomumFamilyEntity, SwitchEntity):
     """Internet (pause), punition (durée et mode des options) ou mode vacances d'un enfant."""
 
@@ -147,6 +174,14 @@ async def async_setup_entry(
             "blocklists.apps",
             lambda i: [BlocklistAppSwitch(coordinator, i)],
         )
+    if coordinator.can("reverse_proxy", "write"):
+        for kind in ("routes", "streams"):
+            add_items(
+                entry,
+                async_add_entities,
+                f"reverse_proxy.{kind}",
+                lambda i, kind=kind: [ReverseProxySwitch(coordinator, i, kind)],
+            )
     if coordinator.can("family", "write"):
         add_items(
             entry,
