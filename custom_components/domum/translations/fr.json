@@ -82,6 +82,9 @@
           "punished": "Puni",
           "exhausted": "Temps épuisé"
         }
+      },
+      "blocklists_retained": {
+        "name": "Listes de blocage - Adresses retenues"
       }
     },
     "binary_sensor": {
@@ -137,6 +140,9 @@
       },
       "family_bonus_60": {
         "name": "Ajouter 1 heure"
+      },
+      "blocklists_refresh": {
+        "name": "Listes de blocage - Relever"
       }
     },
     "switch": {
@@ -151,6 +157,9 @@
       },
       "family_vacation": {
         "name": "Mode vacances"
+      },
+      "blocklist_app": {
+        "name": "Listes de blocage - {name}"
       }
     },
     "calendar": {

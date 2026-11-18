@@ -1,4 +1,4 @@
-"""Boutons : sauvegarde, snippets, bastion, Multimédia, temps en plus des enfants."""
+"""Boutons : sauvegarde, snippets, bastion, Multimédia, listes de blocage, temps en plus."""
 
 from __future__ import annotations
 
@@ -74,6 +74,22 @@ class MultimediaPurgeButton(DomumEntity, ButtonEntity):
         await self.coordinator.async_request_refresh()
 
 
+class BlocklistRefreshButton(DomumEntity, ButtonEntity):
+    """Relève toutes les sources des listes de blocage (Domum #238), hors refus 429 en cours."""
+
+    _attr_translation_key = "blocklists_refresh"
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator, "blocklists_refresh")
+
+    async def async_press(self) -> None:
+        try:
+            await self.coordinator.client.refresh_blocklists()
+        except DomumError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+        await self.coordinator.async_request_refresh()
+
+
 class ServerActionButton(DomumItemEntity, ButtonEntity):
     """Mise à jour ou redémarrage d'un serveur, si Domum le permet depuis Home Assistant."""
 
@@ -117,6 +133,8 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     if coordinator.can("bastion", "write"):
         async_add_entities([BastionKillButton(coordinator)])
+    if coordinator.can("blocklists", "write"):
+        async_add_entities([BlocklistRefreshButton(coordinator)])
     if coordinator.can("multimedia", "write"):
         async_add_entities([MultimediaPurgeButton(coordinator)])
     if coordinator.can("updates", "write"):
