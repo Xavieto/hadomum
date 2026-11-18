@@ -1,4 +1,4 @@
-"""Interrupteurs : un par alias exposé, trois par enfant (jeton avec écriture)."""
+"""Interrupteurs : alias exposés, enfants (trois chacun), applications des listes de blocage."""
 
 from __future__ import annotations
 
@@ -39,6 +39,63 @@ class AliasSwitch(DomumItemEntity, SwitchEntity):
     async def _set(self, active: bool) -> None:
         try:
             await self.coordinator.client.set_alias(self.item_id, active)
+        except DomumError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._set(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._set(False)
+
+
+class BlocklistAppSwitch(DomumItemEntity, SwitchEntity):
+    """Application des listes de blocage (Domum #238) : Bastion, UniFi ou Reverse Proxy.
+
+    Seules les applications que Domum autorise pour Home Assistant sont dans l'état.
+    """
+
+    collection = "blocklists.apps"
+    _attr_translation_key = "blocklist_app"
+
+    def __init__(self, coordinator, item):
+        super().__init__(coordinator, item, "switch")
+
+    @property
+    def is_on(self) -> bool:
+        return bool((self.item or {}).get("enabled"))
+
+    async def _set(self, enabled: bool) -> None:
+        try:
+            await self.coordinator.client.set_blocklist_app(self.item_id, enabled)
+        except DomumError as exc:
+            raise HomeAssistantError(str(exc)) from exc
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self._set(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self._set(False)
+
+
+class ReverseProxySwitch(DomumItemEntity, SwitchEntity):
+    """Redirection ou flux du Reverse Proxy (Domum #251), s'il autorise Home Assistant."""
+
+    def __init__(self, coordinator, item, kind):
+        self.collection = f"reverse_proxy.{kind}"
+        self._kind = kind
+        self._attr_translation_key = f"proxy_{kind[:-1]}"
+        super().__init__(coordinator, item, "switch")
+
+    @property
+    def is_on(self) -> bool:
+        return bool((self.item or {}).get("enabled"))
+
+    async def _set(self, enabled: bool) -> None:
+        try:
+            await self.coordinator.client.set_proxy(self._kind, self.item_id, enabled)
         except DomumError as exc:
             raise HomeAssistantError(str(exc)) from exc
         await self.coordinator.async_request_refresh()
@@ -110,6 +167,21 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     if coordinator.can("alias", "write"):
         add_items(entry, async_add_entities, "aliases", lambda i: [AliasSwitch(coordinator, i)])
+    if coordinator.can("blocklists", "write"):
+        add_items(
+            entry,
+            async_add_entities,
+            "blocklists.apps",
+            lambda i: [BlocklistAppSwitch(coordinator, i)],
+        )
+    if coordinator.can("reverse_proxy", "write"):
+        for kind in ("routes", "streams"):
+            add_items(
+                entry,
+                async_add_entities,
+                f"reverse_proxy.{kind}",
+                lambda i, kind=kind: [ReverseProxySwitch(coordinator, i, kind)],
+            )
     if coordinator.can("family", "write"):
         add_items(
             entry,

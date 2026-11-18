@@ -82,6 +82,9 @@
           "punished": "Punished",
           "exhausted": "Time exhausted"
         }
+      },
+      "blocklists_retained": {
+        "name": "Blocklists - Retained addresses"
       }
     },
     "binary_sensor": {
@@ -137,6 +140,9 @@
       },
       "family_bonus_60": {
         "name": "Add 1 hour"
+      },
+      "blocklists_refresh": {
+        "name": "Blocklists - Refresh"
       }
     },
     "switch": {
@@ -151,6 +157,15 @@
       },
       "family_vacation": {
         "name": "Vacation mode"
+      },
+      "blocklist_app": {
+        "name": "Blocklists - {name}"
+      },
+      "proxy_route": {
+        "name": "Reverse Proxy - {name}"
+      },
+      "proxy_stream": {
+        "name": "Reverse Proxy - stream {name}"
       }
     },
     "calendar": {

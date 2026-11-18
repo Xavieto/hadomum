@@ -103,6 +103,33 @@ class MultimediaLatestSensor(DomumEntity, SensorEntity):
         return {"items": media.get("latest") or [], "purgeable": media.get("purgeable")}
 
 
+class BlocklistsSensor(DomumEntity, SensorEntity):
+    """Listes de blocage (Domum #238) : adresses retenues par la dernière fusion."""
+
+    _attr_translation_key = "blocklists_retained"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator, "blocklists_retained")
+
+    @property
+    def available(self) -> bool:
+        return super().available and "blocklists" in self.coordinator.data
+
+    @property
+    def native_value(self) -> int | None:
+        return self.coordinator.data.get("blocklists", {}).get("retained")
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        data = self.coordinator.data.get("blocklists", {})
+        return {
+            "networks": data.get("networks"),
+            "generated_at": data.get("generated_at"),
+            "errors": data.get("errors"),
+        }
+
+
 class MonitoringMetricSensor(DomumItemEntity, SensorEntity):
     """Charge, mémoire ou système de fichiers le plus plein d'un serveur supervisé."""
 
@@ -225,6 +252,8 @@ async def async_setup_entry(
         async_add_entities([BastionSessionsSensor(coordinator)])
     if coordinator.can("multimedia"):
         async_add_entities([MultimediaLatestSensor(coordinator)])
+    if coordinator.can("blocklists"):
+        async_add_entities([BlocklistsSensor(coordinator)])
     add_items(
         entry,
         async_add_entities,

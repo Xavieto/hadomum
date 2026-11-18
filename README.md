@@ -2,7 +2,7 @@
 
 Intégration personnalisée qui relie Home Assistant à [Domum](https://git.roques.bzh/tools/domum),
 l'outillage du homelab : état des sauvegardes, bastion SSH, alias mail, puis supervision,
-mises à jour, planning (Domum 2.8.0) et contrôle parental, module Famille (Domum 2.26.0) et snippets (Domum 2.28.0).
+mises à jour, planning (Domum 2.8.0) et contrôle parental, module Famille (Domum 2.26.0), snippets (Domum 2.28.0) et listes de blocage (Domum 2.30.0).
 
 ## Installation (HACS, dépôt personnalisé)
 
@@ -33,6 +33,8 @@ Les entités suivent les portées du jeton : sans écriture, pas de bouton ni d'
 | Multimédia | derniers ajouts de Jellyfin (nombre ; liste en attribut `items`, épisodes à purger en `purgeable`), bouton « purger » (écriture) — Domum 2.9.0 |
 | Famille | par enfant, un appareil « Famille - <prénom> » : temps restant (inconnu sans budget) et temps utilisé en minutes, état (ouvert, fermé, en pause, puni, temps épuisé), connecté (binaire) ; interrupteurs (écriture) « Internet » (éteint = pause), « Punition » (durée et mode des options) et « Mode vacances » ; boutons « Ajouter 15 minutes », « Ajouter 30 minutes », « Ajouter 1 heure » — jeton avec la portée `family`, Domum 2.26.0 |
 | Snippets | par snippet exposé : bouton « lancer » (écriture), qui exécute ses étapes sur ses cibles ; un snippet créé dans Domum apparaît à l'actualisation suivante, un snippet supprimé devient indisponible puis disparaît au rechargement de l'intégration — jeton avec la portée `snippets` et les snippets choisis dans « éléments exposés » ; seuls les snippets qui autorisent leur lancement depuis Home Assistant (case du snippet dans Domum) sont visibles, Domum 2.28.0 |
+| Listes de blocage | capteur « adresses retenues » (réseaux, date de la dernière fusion et nombre d'erreurs en attributs, lecture) ; bouton « relever » (écriture, toutes les sources, hors refus 429 en cours) ; un interrupteur par application (Bastion, routeur UniFi, Reverse Proxy) — seules celles cochées « Home Assistant » dans Domum (Paramètres → Listes de blocage) apparaissent : deux accords, la portée `blocklists` en écriture du jeton et la case de l'application, Domum 2.30.0 |
+| Reverse Proxy | un interrupteur par redirection et par flux (actif ou coupé) — seuls ceux cochés « Autoriser l'activation depuis Home Assistant » dans Domum apparaissent : deux accords, la portée `reverse_proxy` en écriture du jeton et la case de l'objet, Domum 2.30.0 |
 | Planning | calendrier « Planning » : sauvegardes, mises à jour planifiées, tâches de l'ordonnanceur, plages de maintenance (chevauchements signalés) |
 
 Chaque nom d'entité commence par son module (« Sauvegarde - Critique : lancer », « Supervision -

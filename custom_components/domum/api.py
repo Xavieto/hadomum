@@ -64,6 +64,15 @@ class DomumClient:
     async def run_snippet(self, snippet_id: str) -> dict:
         return await self._request("POST", f"/snippets/{snippet_id}/run")
 
+    async def set_blocklist_app(self, app: str, enabled: bool) -> dict:
+        return await self._request("POST", f"/blocklists/apps/{app}", {"enabled": enabled})
+
+    async def set_proxy(self, kind: str, item_id: str, enabled: bool) -> dict:
+        return await self._request("POST", f"/reverse-proxy/{kind}/{item_id}", {"enabled": enabled})
+
+    async def refresh_blocklists(self) -> dict:
+        return await self._request("POST", "/blocklists/refresh")
+
     async def kill_sessions(self) -> dict:
         return await self._request("POST", "/bastion/kill-all")
 
